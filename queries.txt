@@ -197,3 +197,34 @@ $$ LANGUAGE plpgsql;
 
 SELECT *
 FROM get_device_pings_in_time_range(35, '08:00:00', '12:00:00');
+
+
+SELECT
+    c.call_id,
+    c.caller_device_id,
+    c.receiver_device_id,
+    t.tower_name,
+    r.municipality,
+    r.county,
+    c.start_time,
+    c.end_time
+FROM calls c
+JOIN towers t ON c.tower_id = t.tower_id
+JOIN regions r ON t.region_id = r.region_id
+WHERE c.caller_device_id <> c.receiver_device_id
+ORDER BY r.county, r.municipality, c.start_time;
+
+
+SELECT
+    d.device_id,
+    d.phone_number,
+    t.tower_name,
+    r.municipality,
+    r.county,
+    COUNT(*) AS ping_count
+FROM pings p
+JOIN devices d ON p.device_id = d.device_id
+JOIN towers t ON p.tower_id = t.tower_id
+JOIN regions r ON t.region_id = r.region_id
+GROUP BY d.device_id, d.phone_number, t.tower_name, r.municipality, r.county
+ORDER BY d.device_id, ping_count DESC;
